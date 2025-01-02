@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anotações</title>
+    <style>
+        /* Estilos gerais */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        h1 {
+            color: #000000; /* Cor preta */
+            margin-bottom: 10px;
+            font-size: 36px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        #todo-form {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px;
+            box-sizing: border-box;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #todo-input {
+            width: 80%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+
+        #add-btn {
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #000000; /* Cor preta */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            width: 20%;
+            transition: background-color 0.3s;
+        }
+
+        #add-btn:hover {
+            background-color: #333333; /* Cor mais escura no hover */
+        }
+
+        #todo-list {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .todo-date {
+            background-color: #f2f2f2;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 8px;
+            font-size: 20px;
+            color: #333;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .todo-item {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .todo-text {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .todo-time {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        footer {
+            font-size: 14px;
+            color: #888;
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        /* Estilo para o botão de remover */
+        .remove-btn {
+            background-color: #ff5252;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            align-self: flex-start;
+            transition: background-color 0.3s;
+        }
+
+        .remove-btn:hover {
+            background-color: #f44336;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            #todo-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            #todo-input {
+                width: 100%;
+            }
+
+            #add-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<center>
+    <h2>Anotações</h2>
+    <h3>As anotações ficam salvas na memória interna do navegador. <br> Se o histórico for apagado, as anotações serão perdidas.</h3>
+</center>
+<br>
+<br>
+    <div id="todo-form">
+        <input type="text" id="todo-input" placeholder="Digite sua anotação">
+        <button id="add-btn">Adicionar Anotação</button>
+    </div>
+
+    <ul id="todo-list"></ul>
+
+    <footer>
+        <p>&copy; k1000</p> 
+    </footer>
+<script>
+    // Função para obter a data e hora atual formatada (sem hora)
+    function getCurrentDate() {
+        const now = new Date();
+        return now.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+        });
+    }
+
+    // Função para adicionar tarefa
+    function addTask() {
+        const todoInput = document.getElementById("todo-input");
+        const todoText = todoInput.value.trim();
+
+        if (todoText !== "") {
+            const date = getCurrentDate();
+            const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            const task = { text: todoText, date, time };
+
+            saveTaskToLocalStorage(task);
+            renderTasks();
+            todoInput.value = ""; // Limpa o campo de entrada
+        }
+    }
+
+    // Função para salvar tarefa no localStorage
+    function saveTaskToLocalStorage(task) {
+        const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+        tasks.push(task);
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    // Função para carregar tarefas e agrupá-las por data
+    function renderTasks() {
+        const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+        const groupedTasks = groupTasksByDate(tasks);
+
+        const todoList = document.getElementById("todo-list");
+        todoList.innerHTML = ""; // Limpa a lista atual
+
+        for (const date in groupedTasks) {
+            const dateHeader = document.createElement("div");
+            dateHeader.classList.add("todo-date");
+            dateHeader.textContent = date;
+            todoList.appendChild(dateHeader);
+
+            groupedTasks[date].forEach((task, index) => {
+                const li = document.createElement("li");
+                li.classList.add("todo-item");
+
+                li.innerHTML = 
+                    `<span class="todo-text">${task.text}</span>
+                    <span class="todo-time">${task.time}</span>
+                    <button class="remove-btn" onclick="removeTask(${index})">Remover</button>`;
+
+                todoList.appendChild(li);
+            });
+        }
+    }
+
+    // Função para agrupar tarefas por data
+    function groupTasksByDate(tasks) {
+        return tasks.reduce((acc, task) => {
+            if (!acc[task.date]) {
+                acc[task.date] = [];
+            }
+            acc[task.date].push(task);
+            return acc;
+        }, {});
+    }
+
+    // Função para remover tarefa
+    function removeTask(index) {
+        const tasks = JSON.parse(localStorage.getItem("tasks"));
+        tasks.splice(index, 1); // Remove a tarefa no índice especificado
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+        renderTasks(); // Re-renderiza as tarefas após remoção
+    }
+
+    // Evento de clique no botão de adicionar tarefa
+    document.getElementById("add-btn").addEventListener("click", addTask);
+
+    // Carregar tarefas ao carregar a página
+    window.onload = renderTasks;
+</script>
+
+</body>
+</html>
